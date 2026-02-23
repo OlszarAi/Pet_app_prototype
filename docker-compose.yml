@@ -1,6 +1,7 @@
 # ===========================
 # PetsApp — Środowisko DEV
 # ===========================
+# Wymagany plik .env (skopiuj z .env.example i uzupełnij)
 # Uruchamia: PostgreSQL 16, Redis 7, MailHog (email dev), MinIO (S3 lokalnie)
 #
 # Start:  docker compose up -d
@@ -15,10 +16,12 @@ services:
     image: postgres:16-alpine
     container_name: petsapp_postgres
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: petsapp_dev
-      POSTGRES_USER: petsapp
-      POSTGRES_PASSWORD: petsapp_secret
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -26,7 +29,7 @@ services:
     networks:
       - petsapp_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U petsapp -d petsapp_dev" ]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,9 +68,11 @@ services:
     container_name: petsapp_minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
+    env_file:
+      - .env
     environment:
-      MINIO_ROOT_USER: petsapp_minio
-      MINIO_ROOT_PASSWORD: petsapp_minio_secret
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "9000:9000" # S3 API
       - "9001:9001" # Web console

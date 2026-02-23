@@ -97,7 +97,45 @@
 
 ---
 
-## 5. Czego AI NIE MOŻE robić
+## 5. Sekrety i bezpieczeństwo repozytorium 🔐
+
+> **REPO JEST PUBLICZNE.** Jakikolwiek sekret w kodzie = natychmiastowy incydent bezpieczeństwa.
+
+### Zasady bezwzględne
+- **Nigdy** nie commituj haseł, tokenów, kluczy API, connection stringów — nawet dev.
+- Wszystkie sekrety trafiają do pliku `.env` (plik jest w `.gitignore`, nie jest commitowany).
+- Commituj tylko `.env.example` z wartościami-placeholder (`change_me_dev_only`, `your_key_here`).
+- AI generująca kod **musi** używać zmiennych środowiskowych: `${POSTGRES_URL}`, `@Value("${jwt.secret}")`.
+
+### Struktura plików sekretów
+```
+.env.example   ← commitowany, placeholder wartości
+.env           ← NIGDY nie commitowany, realne wartości dev
+application-prod.yml  ← NIGDY nie commitowany (jest w .gitignore)
+```
+
+### Spring Boot — odczyt sekretów
+```yaml
+# application-dev.yml (commitowany, tylko localhost wartości przez ${VAR})
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+```
+
+### Jeśli przypadkowo wcommitowałeś sekret
+1. Natychmiast unieważnij sekret (zmień hasło/zregeneruj klucz)
+2. `git rebase -i` lub `git filter-branch` żeby usunąć z historii
+3. Force push na develop/main
+4. Powiadom zespół
+
+### Czego AI NIE może robić z sekretami
+- ❌ Hardkodować jakichkolwiek wartości w `docker-compose.yml`, `application.yml`, kodzie Java/TS
+- ❌ Tworzyć pliku `.env` z realnymi wartościami i proponować jego commit
+- ❌ Używać dev credentials w testach — tylko test-specific values przez Testcontainers
+
+
 
 - ❌ NIE Generować kodu z zakomentowanymi sekcjami "// TODO: implement this later"
 - ❌ NIE Tworzyć pliku `Utils.java` lub `Helpers.ts` jako worka na wszystko
