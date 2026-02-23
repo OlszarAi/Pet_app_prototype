@@ -6,14 +6,15 @@
 
 ## 1. Ogólne zasady — zawsze
 
-- **Pisz kod produkcyjny, nie prototypowy.** Każdy plik ma być gotowy do code review przez seniora.
-- **Jeden plik = jedna odpowiedzialność.** Nie łącz logiki biznesowej, dostępu do danych i prezentacji w jednym pliku.
-- **Brak magic strings i magic numbers.** Używaj stałych, enumów i konfiguracji.
-- **Nazwy muszą mówić same za siebie.** Żadnych `temp`, `data2`, `stuff`, `helper` bez kontekstu.
-- **Komentarze opisują DLACZEGO, nie CO.** Jeśli kod wymaga komentarza żeby rozumieć CO robi — przepisz go.
-- **Nie duplikuj kodu.** Wyciągnij do wspólnej metody/komponentu zanim skopujesz linię drugi raz.
-- **Błędy muszą być obsługiwane.** Żadnych pustych catch bloków, żadnego połykania wyjątków.
-- **Nie generuj kodu z TODO / placeholder / FIXME** — albo implementujesz w pełni, albo pytasz o zakres.
+- **Pisz kod produkcyjny, nie prototypowy.** Kazdy plik ma byc gotowy do code review przez seniora.
+- **Jeden plik = jedna odpowiedzialnosc.** Nie lacz logiki biznesowej, dostepu do danych i prezentacji w jednym pliku.
+- **Brak magic strings i magic numbers.** Uzywaj stalych, enumow i konfiguracji.
+- **Nazwy musza mowic same za siebie.** Zadnych `temp`, `data2`, `stuff`, `helper` bez kontekstu.
+- **Komentarze opisuja DLACZEGO, nie CO.** Jesli kod wymaga komentarza zeby rozumiec CO robi — przepisz go.
+- **Nie duplikuj kodu.** Wyciagnij do wspolnej metody/komponentu zanim skopujesz linie drugi raz.
+- **Bledy musza byc obslugiwane.** Zadnych pustych catch blokow, zadnego polykania wyjatkow.
+- **Nie generuj kodu z TODO / placeholder / FIXME** — albo implementujesz w pelni, albo pytasz o zakres.
+- **Brak emoji w kodzie, komentarzach i dokumentacji.** Emoji to sygnatura AI slopu — kod ma byc profesjonalny i czytelny dla calego zespolu. Jedyny wyjatek: notyfikacje push (tytuly wiadomosci do uzytkownika aplikacji).
 
 ---
 
@@ -97,7 +98,7 @@
 
 ---
 
-## 5. Sekrety i bezpieczeństwo repozytorium 🔐
+## 5. Sekrety i bezpieczenstwo repozytorium
 
 > **REPO JEST PUBLICZNE.** Jakikolwiek sekret w kodzie = natychmiastowy incydent bezpieczeństwa.
 
@@ -137,16 +138,17 @@ spring:
 
 
 
-- ❌ NIE Generować kodu z zakomentowanymi sekcjami "// TODO: implement this later"
-- ❌ NIE Tworzyć pliku `Utils.java` lub `Helpers.ts` jako worka na wszystko
-- ❌ NIE Wklejać logiki biznesowej do kontrolera/komponentu
-- ❌ NIE Używać `var` w Javie gdzie typ jest nieoczywisty
-- ❌ NIE Generować pustych implementacji interfejsów (stub bez treści)
-- ❌ NIE Tworzyć pliku przekraczającego ~300 linii bez podziału na klasy/moduły
-- ❌ NIE Zmieniać istniejącej migracji Flyway (tylko nowa wersja)
-- ❌ NIE Hardkodować URL-i, portów, haseł czy kluczy API
-- ❌ NIE Pomijać obsługi błędów (pustych catch, braku .isError w query)
-- ❌ NIE Tworzyć nowego endpointu bez odpowiedniej autoryzacji w SecurityConfig
+- Nie generowac kodu z zakomentowanymi sekcjami "// TODO: implement this later"
+- Nie tworzyc pliku `Utils.java` lub `Helpers.ts` jako worka na wszystko
+- Nie wklejac logiki biznesowej do kontrolera/komponentu
+- Nie uzywac `var` w Javie gdzie typ jest nieoczywisty
+- Nie generowac pustych implementacji interfejsow (stub bez tresci)
+- Nie tworzyc pliku przekraczajacego ~300 linii bez podzialu na klasy/moduly
+- Nie zmieniac istniejacych migracji Flyway (tylko nowa wersja V{n+1})
+- Nie hardkowac URL-i, portow, hasel ani kluczy API
+- Nie pomijac obslugi bledow (pustych catch, braku .isError w query)
+- Nie tworzyc endpointu bez odpowiedniej autoryzacji w SecurityConfig
+- Nie uzywac emoji w kodzie, komentarzach, nazwach zmiennych, logow ani dokumentacji technicznej
 
 ---
 
