@@ -68,7 +68,3 @@ logs/
 # ---- Test reports ----
 backend/target/surefire-reports/
 backend/target/failsafe-reports/
-
-
-# ---- Docs ----
-docs/

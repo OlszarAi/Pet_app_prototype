@@ -1,0 +1,29 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  # Wylaczamy automatyczna konfiguracje Redis w testach integracyjnych
+  # RateLimitService uzywa lokalnej mapy in-memory — Redis nie jest potrzebny w Kroku 2
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+  # Wylaczamy konfiguracje poczty — EmailService jest mockowany w testach
+  mail:
+    host: localhost
+    port: 3025
+
+app:
+  jwt:
+    secret: test-secret-min-32-chars-long-for-tests-only
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
+  frontend-url: http://localhost:3000
+
+logging:
+  level:
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.flywaydb: WARN
