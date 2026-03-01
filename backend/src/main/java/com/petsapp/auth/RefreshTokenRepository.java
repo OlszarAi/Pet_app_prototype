@@ -9,17 +9,14 @@ import org.springframework.data.repository.query.Param;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
 
-    Optional<RefreshToken> findByTokenHash(String tokenHash);
+  Optional<RefreshToken> findByTokenHash(String tokenHash);
 
-    /**
-     * Uniewa\u017cnienie wszystkich tokenow usera (np. przy zmianie hasla lub soft
-     * delete).
-     */
-    @Modifying
-    @Query("DELETE FROM RefreshToken rt WHERE rt.user.id = :userId")
-    void deleteAllByUserId(@Param("userId") UUID userId);
+  /** Uniewa\u017cnienie wszystkich tokenow usera (np. przy zmianie hasla lub soft delete). */
+  @Modifying
+  @Query("DELETE FROM RefreshToken rt WHERE rt.user.id = :userId")
+  void deleteAllByUserId(@Param("userId") UUID userId);
 
-    @Modifying
-    @Query("DELETE FROM RefreshToken rt WHERE rt.tokenHash = :tokenHash")
-    void deleteByTokenHash(@Param("tokenHash") String tokenHash);
+  @Modifying
+  @Query("DELETE FROM RefreshToken rt WHERE rt.tokenHash = :tokenHash")
+  void deleteByTokenHash(@Param("tokenHash") String tokenHash);
 }

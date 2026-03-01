@@ -68,3 +68,8 @@ logs/
 # ---- Test reports ----
 backend/target/surefire-reports/
 backend/target/failsafe-reports/
+
+docs/odpowiedzi
+.agents
+.claude
+skills-lock.json

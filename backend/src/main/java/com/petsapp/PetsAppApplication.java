@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class PetsAppApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(PetsAppApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(PetsAppApplication.class, args);
+  }
 }

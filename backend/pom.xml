@@ -25,6 +25,7 @@
         <thumbnailator.version>0.4.20</thumbnailator.version>
         <jjwt.version>0.12.6</jjwt.version>
         <testcontainers.version>1.20.3</testcontainers.version>
+        <google-api-client.version>2.6.0</google-api-client.version>
     </properties>
 
     <dependencies>
@@ -114,6 +115,13 @@
             <groupId>com.bucket4j</groupId>
             <artifactId>bucket4j-core</artifactId>
             <version>${bucket4j.version}</version>
+        </dependency>
+
+        <!-- Google OAuth2 — weryfikacja Google ID tokenow po stronie serwera -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>${google-api-client.version}</version>
         </dependency>
 
         <!-- Image processing -->

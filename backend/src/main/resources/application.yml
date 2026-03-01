@@ -59,6 +59,12 @@ management:
     health:
       show-details: never
 
+# Google OAuth2 — Client ID weryfikowany po stronie serwera
+# Wartosc pochodzi z GOOGLE_CLIENT_ID env var (application-dev.yml / prod)
+# Pusty default — w testach GoogleTokenVerifierImpl nie jest tworzony (Profile!test)
+google:
+  client-id: ${GOOGLE_CLIENT_ID:}
+
 # Logging
 logging:
   level:

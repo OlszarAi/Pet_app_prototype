@@ -14,14 +14,15 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
- * Przechowuje refresh tokeny uzytkownikow.
+ * Jednorazowy token do resetowania hasla.
  *
- * <p>Zapisujemy hash tokena (SHA-256), nie raw wartosc — tak aby nawet przy wycieku bazy atakujacy
- * nie mogl uzyc tokenow. Raw token jest przekazywany tylko raz do klienta przy wystawieniu.
+ * <p>Zapisujemy hash tokena (SHA-256), nie raw wartosc — tak samo jak refresh_token. Token jest
+ * wazny przez 1 godzine. Po uzyciu jest oznaczany used_at, co sprawia ze nie moze byc uzyty po raz
+ * drugi.
  */
 @Entity
-@Table(name = "refresh_token")
-public class RefreshToken {
+@Table(name = "password_reset")
+public class PasswordReset {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,31 +36,26 @@ public class RefreshToken {
   @Column(name = "token_hash", nullable = false, unique = true, length = 255)
   private String tokenHash;
 
-  @Column(name = "device_info", length = 255)
-  private String deviceInfo;
-
   @Column(name = "expires_at", nullable = false)
   private Instant expiresAt;
+
+  @Column(name = "used_at")
+  private Instant usedAt;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
-  protected RefreshToken() {}
+  protected PasswordReset() {}
 
-  private RefreshToken(Builder builder) {
+  private PasswordReset(Builder builder) {
     this.user = builder.user;
     this.tokenHash = builder.tokenHash;
-    this.deviceInfo = builder.deviceInfo;
     this.expiresAt = builder.expiresAt;
   }
 
   public static Builder builder() {
     return new Builder();
-  }
-
-  public UUID getId() {
-    return id;
   }
 
   public User getUser() {
@@ -70,26 +66,24 @@ public class RefreshToken {
     return tokenHash;
   }
 
-  public String getDeviceInfo() {
-    return deviceInfo;
-  }
-
-  public Instant getExpiresAt() {
-    return expiresAt;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
-
+  /** Sprawdza czy token wygasl (biezacy czas jest po expiresAt). */
   public boolean isExpired() {
     return Instant.now().isAfter(expiresAt);
+  }
+
+  /** Sprawdza czy token byl juz uzyty. */
+  public boolean isUsed() {
+    return usedAt != null;
+  }
+
+  /** Oznacza token jako uzyty — uniemozliwia ponowne uzycie. */
+  public void markUsed() {
+    this.usedAt = Instant.now();
   }
 
   public static final class Builder {
     private User user;
     private String tokenHash;
-    private String deviceInfo;
     private Instant expiresAt;
 
     private Builder() {}
@@ -104,18 +98,13 @@ public class RefreshToken {
       return this;
     }
 
-    public Builder deviceInfo(String deviceInfo) {
-      this.deviceInfo = deviceInfo;
-      return this;
-    }
-
     public Builder expiresAt(Instant expiresAt) {
       this.expiresAt = expiresAt;
       return this;
     }
 
-    public RefreshToken build() {
-      return new RefreshToken(this);
+    public PasswordReset build() {
+      return new PasswordReset(this);
     }
   }
 }

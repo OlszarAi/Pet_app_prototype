@@ -9,29 +9,35 @@ import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    Optional<User> findByEmail(String email);
+  Optional<User> findByEmail(String email);
 
-    Optional<User> findByUsername(String username);
+  Optional<User> findByUsername(String username);
 
-    boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 
-    boolean existsByUsername(String username);
+  boolean existsByUsername(String username);
 
-    /** Szuka aktywnych uzytkownikow (nie soft-deleted) po emailu. */
-    @Query("SELECT u FROM User u WHERE u.email = :email AND u.deletedAt IS NULL")
-    Optional<User> findActiveByEmail(@Param("email") String email);
+  /** Szuka aktywnych uzytkownikow (nie soft-deleted) po emailu. */
+  @Query("SELECT u FROM User u WHERE u.email = :email AND u.deletedAt IS NULL")
+  Optional<User> findActiveByEmail(@Param("email") String email);
 
-    /** Szuka aktywnych uzytkownikow po username. */
-    @Query("SELECT u FROM User u WHERE u.username = :username AND u.deletedAt IS NULL")
-    Optional<User> findActiveByUsername(@Param("username") String username);
+  /** Szuka aktywnych uzytkownikow po username. */
+  @Query("SELECT u FROM User u WHERE u.username = :username AND u.deletedAt IS NULL")
+  Optional<User> findActiveByUsername(@Param("username") String username);
 
-    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.email = :email AND u.deletedAt IS NULL")
-    boolean existsActiveByEmail(@Param("email") String email);
+  @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.email = :email AND u.deletedAt IS NULL")
+  boolean existsActiveByEmail(@Param("email") String email);
 
-    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.username = :username AND u.deletedAt IS NULL")
-    boolean existsActiveByUsername(@Param("username") String username);
+  @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.username = :username AND u.deletedAt IS NULL")
+  boolean existsActiveByUsername(@Param("username") String username);
 
-    @Modifying
-    @Query("UPDATE User u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
-    void softDeleteById(@Param("id") UUID id);
+  @Modifying
+  @Query("UPDATE User u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
+  void softDeleteById(@Param("id") UUID id);
+
+  /** Szuka aktywnego uzytkownika po dostawcy OAuth i jego unikalnym ID. */
+  @Query(
+      "SELECT u FROM User u WHERE u.oauthProvider = :provider AND u.oauthId = :oauthId AND u.deletedAt IS NULL")
+  Optional<User> findByOauthProviderAndOauthId(
+      @Param("provider") String provider, @Param("oauthId") String oauthId);
 }
