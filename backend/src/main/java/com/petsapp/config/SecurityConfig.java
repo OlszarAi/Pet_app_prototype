@@ -47,7 +47,9 @@ public class SecurityConfig {
     "/auth/forgot-password",
     "/auth/reset-password",
     "/auth/google",
-    "/users/search"
+    "/users/search",
+    "/breeds",
+    "/breeds/**"
   };
 
   private final JwtFilter jwtFilter;

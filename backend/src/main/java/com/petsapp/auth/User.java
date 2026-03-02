@@ -182,6 +182,15 @@ public class User {
     this.oauthId = oauthId;
   }
 
+  /**
+   * Zmienia widocznosc profilu (publiczny / prywatny).
+   *
+   * <p>Prywatny profil ukrywa Pokedex i catche przed innymi uzytkownikami.
+   */
+  public void updatePrivacy(boolean isPrivate) {
+    this.isPrivate = isPrivate;
+  }
+
   public static final class Builder {
     private String username;
     private String email;

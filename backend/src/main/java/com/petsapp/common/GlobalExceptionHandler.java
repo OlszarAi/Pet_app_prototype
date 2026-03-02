@@ -3,6 +3,8 @@ package com.petsapp.common;
 import com.petsapp.auth.AuthException;
 import com.petsapp.auth.ConflictException;
 import com.petsapp.auth.RateLimitExceededException;
+import com.petsapp.breed.BreedNotFoundException;
+import com.petsapp.breed.PokedexAccessDeniedException;
 import com.petsapp.user.AvatarProcessingException;
 import com.petsapp.user.PasswordMismatchException;
 import com.petsapp.user.UnsupportedFileFormatException;
@@ -101,6 +103,21 @@ public class GlobalExceptionHandler {
             ApiResponse.error(
                 ApiResponse.ErrorDetail.of(
                     ErrorCode.FILE_TOO_LARGE, "File size exceeds the 10MB limit")));
+  }
+
+  /** Rasa nie zostala znaleziona lub nie jest aktywna. 404 Not Found. */
+  @ExceptionHandler(BreedNotFoundException.class)
+  public ResponseEntity<ApiResponse<Void>> handleBreedNotFoundException(BreedNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.NOT_FOUND, ex.getMessage())));
+  }
+
+  /** Brak dostepu do Pokedeksu prywatnego profilu. 403 Forbidden. */
+  @ExceptionHandler(PokedexAccessDeniedException.class)
+  public ResponseEntity<ApiResponse<Void>> handlePokedexAccessDenied(
+      PokedexAccessDeniedException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.FORBIDDEN, ex.getMessage())));
   }
 
   /** Uzytkownik nie zostal znaleziony lub zostal soft-deleted. 404 Not Found. */
