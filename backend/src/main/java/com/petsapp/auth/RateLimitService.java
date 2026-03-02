@@ -24,6 +24,7 @@ public class RateLimitService {
   private static final int REGISTER_TOKENS_PER_MINUTE = 3;
   private static final int RESEND_TOKENS_PER_MINUTE = 2;
   private static final int FORGOT_PASSWORD_TOKENS_PER_MINUTE = 3;
+  private static final int UPLOAD_TOKENS_PER_MINUTE = 10;
 
   private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
@@ -65,6 +66,16 @@ public class RateLimitService {
    */
   public void checkForgotPasswordRateLimit(String ipAddress) {
     checkLimit("forgot-password", ipAddress, FORGOT_PASSWORD_TOKENS_PER_MINUTE);
+  }
+
+  /**
+   * Sprawdza czy uzytkownik moze wgrac kolejne zdjecie (limit: 10 catchy/min).
+   *
+   * @param userId ID zalogowanego uzytkownika
+   * @throws RateLimitExceededException gdy limit zostal przekroczony
+   */
+  public void checkUploadRateLimit(String userId) {
+    checkLimit("upload", userId, UPLOAD_TOKENS_PER_MINUTE);
   }
 
   private void checkLimit(String endpoint, String ipAddress, int tokensPerMinute) {

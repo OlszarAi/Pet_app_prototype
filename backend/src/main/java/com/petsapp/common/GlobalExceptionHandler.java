@@ -5,6 +5,9 @@ import com.petsapp.auth.ConflictException;
 import com.petsapp.auth.RateLimitExceededException;
 import com.petsapp.breed.BreedNotFoundException;
 import com.petsapp.breed.PokedexAccessDeniedException;
+import com.petsapp.catch_.CatchAccessDeniedException;
+import com.petsapp.catch_.CatchNotFoundException;
+import com.petsapp.catch_.ImageProcessingException;
 import com.petsapp.user.AvatarProcessingException;
 import com.petsapp.user.PasswordMismatchException;
 import com.petsapp.user.UnsupportedFileFormatException;
@@ -103,6 +106,34 @@ public class GlobalExceptionHandler {
             ApiResponse.error(
                 ApiResponse.ErrorDetail.of(
                     ErrorCode.FILE_TOO_LARGE, "File size exceeds the 10MB limit")));
+  }
+
+  /** Catch nie zostal znaleziony lub zostal soft-deleted. 404 Not Found. */
+  @ExceptionHandler(CatchNotFoundException.class)
+  public ResponseEntity<ApiResponse<Void>> handleCatchNotFoundException(CatchNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.NOT_FOUND, ex.getMessage())));
+  }
+
+  /** Proba modyfikacji cudzego catcha lub komentarza. 403 Forbidden. */
+  @ExceptionHandler(CatchAccessDeniedException.class)
+  public ResponseEntity<ApiResponse<Void>> handleCatchAccessDenied(
+      CatchAccessDeniedException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(
+            ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.FORBIDDEN, ex.getMessage())));
+  }
+
+  /** Blad przetwarzania zdjecia catcha. 400 Bad Request. */
+  @ExceptionHandler(ImageProcessingException.class)
+  public ResponseEntity<ApiResponse<Void>> handleImageProcessingException(
+      ImageProcessingException ex) {
+    log.warn("Image processing failed", ex);
+    return ResponseEntity.badRequest()
+        .body(
+            ApiResponse.error(
+                ApiResponse.ErrorDetail.of(
+                    ErrorCode.VALIDATION_ERROR, "Could not process the uploaded image.")));
   }
 
   /** Rasa nie zostala znaleziona lub nie jest aktywna. 404 Not Found. */

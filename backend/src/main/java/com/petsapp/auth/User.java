@@ -191,6 +191,32 @@ public class User {
     this.isPrivate = isPrivate;
   }
 
+  /**
+   * Inkrementuje denormalizowany licznik catchy.
+   *
+   * <p>Wywolywane po pomyslnym zapisaniu nowego DogCatch w CatchService. Denormalizacja pozwala
+   * na szybkie wyswietlanie statystyk profilu bez COUNT(*) na dog_catch.
+   */
+  public void incrementTotalCatches() {
+    this.totalCatches++;
+  }
+
+  /** Dekrementuje denormalizowany licznik catchy (po soft delete). */
+  public void decrementTotalCatches() {
+    if (this.totalCatches > 0) {
+      this.totalCatches--;
+    }
+  }
+
+  /**
+   * Inkrementuje licznik unikalnych ras.
+   *
+   * <p>Wywolywane przez CatchService gdy nowy catch jest pierwszym dla danej rasy.
+   */
+  public void incrementUniqueBreeds() {
+    this.uniqueBreeds++;
+  }
+
   public static final class Builder {
     private String username;
     private String email;

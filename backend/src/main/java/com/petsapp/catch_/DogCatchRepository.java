@@ -1,5 +1,6 @@
 package com.petsapp.catch_;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -91,4 +92,46 @@ public interface DogCatchRepository extends JpaRepository<DogCatch, UUID> {
           """,
       nativeQuery = true)
   List<java.sql.Date> findDistinctCatchDatesByUserId(@Param("userId") UUID userId);
+
+  /**
+   * Zwraca paginowana liste catchy uzytkownika — pierwsza strona (bez kursora).
+   *
+   * <p>Uwzglednia widocznosc: dla wlasciciela zwraca wszystkie (isPublic ignorowane), dla innych
+   * uzytkownikow filtr jest aplikowany przez serwis po stronie Javy.
+   *
+   * @param userId ID uzytkownika
+   * @param limit max liczba wynikow
+   * @return lista catchy posortowana malejaco po caught_at
+   */
+  @Query(
+      """
+      SELECT dc FROM DogCatch dc
+      WHERE dc.user.id = :userId
+        AND dc.deletedAt IS NULL
+      ORDER BY dc.caughtAt DESC
+      LIMIT :limit
+      """)
+  List<DogCatch> findFirstPageByUserId(@Param("userId") UUID userId, @Param("limit") int limit);
+
+  /**
+   * Zwraca paginowana liste catchy uzytkownika — kolejna strona (z kursorem).
+   *
+   * @param userId ID uzytkownika
+   * @param cursor wartosc caught_at ostatniego elementu poprzedniej strony
+   * @param limit max liczba wynikow
+   * @return lista catchy posortowana malejaco po caught_at
+   */
+  @Query(
+      """
+      SELECT dc FROM DogCatch dc
+      WHERE dc.user.id = :userId
+        AND dc.deletedAt IS NULL
+        AND dc.caughtAt < :cursor
+      ORDER BY dc.caughtAt DESC
+      LIMIT :limit
+      """)
+  List<DogCatch> findNextPageByUserId(
+      @Param("userId") UUID userId,
+      @Param("cursor") Instant cursor,
+      @Param("limit") int limit);
 }

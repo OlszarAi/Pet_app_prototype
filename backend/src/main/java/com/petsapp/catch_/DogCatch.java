@@ -156,6 +156,41 @@ public class DogCatch {
     return caughtAt;
   }
 
+  /** Soft delete — ustawia deleted_at. Catch przestaje byc widoczny w feedzie i profilach. */
+  public void softDelete() {
+    this.deletedAt = Instant.now();
+  }
+
+  /**
+   * Inkrementuje denormalizowany licznik polubien.
+   *
+   * <p>Wywolywane po zapisaniu encji Like — denormalizacja eliminuje kosztowny COUNT(*) przy
+   * kazdym renderowaniu karty.<br>
+   * Dziala wylacznie wewnatrz transakcji (@Transactional w CatchService).
+   */
+  public void incrementLikeCount() {
+    this.likeCount++;
+  }
+
+  /** Dekrementuje denormalizowany licznik polubien. */
+  public void decrementLikeCount() {
+    if (this.likeCount > 0) {
+      this.likeCount--;
+    }
+  }
+
+  /** Inkrementuje denormalizowany licznik komentarzy. */
+  public void incrementCommentCount() {
+    this.commentCount++;
+  }
+
+  /** Dekrementuje denormalizowany licznik komentarzy. */
+  public void decrementCommentCount() {
+    if (this.commentCount > 0) {
+      this.commentCount--;
+    }
+  }
+
   /** Builder dla DogCatch — uzywany w testach i przez CatchService (Krok 6). */
   public static final class Builder {
     private User user;
