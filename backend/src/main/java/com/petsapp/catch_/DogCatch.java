@@ -191,6 +191,16 @@ public class DogCatch {
     }
   }
 
+  /**
+   * Aktualizuje wyliczony score rankingowy feeda.
+   *
+   * <p>Wywolywane przez FeedRebuildJob co 15 minut oraz przy tworzeniu catcha. Wartosc sluzy jako
+   * primary sort key w feedzie publicznym i Redis Sorted Set (feed:public, feed:trending).
+   */
+  public void updateFeedScore(double score) {
+    this.feedScore = score;
+  }
+
   /** Builder dla DogCatch — uzywany w testach i przez CatchService (Krok 6). */
   public static final class Builder {
     private User user;

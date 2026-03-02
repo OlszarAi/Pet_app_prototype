@@ -8,6 +8,8 @@ import com.petsapp.breed.Breed;
 import com.petsapp.breed.BreedNotFoundException;
 import com.petsapp.breed.BreedRepository;
 import com.petsapp.common.ApiResponse;
+import com.petsapp.feed.FeedCacheService;
+import com.petsapp.feed.FeedRankingService;
 import com.petsapp.storage.StorageService;
 import com.petsapp.user.UnsupportedFileFormatException;
 import com.petsapp.user.UserNotFoundException;
@@ -49,6 +51,8 @@ public class CatchService {
   private final StorageService storageService;
   private final ImageResizer imageResizer;
   private final RateLimitService rateLimitService;
+  private final FeedRankingService feedRankingService;
+  private final FeedCacheService feedCacheService;
 
   public CatchService(
       DogCatchRepository catchRepository,
@@ -59,7 +63,9 @@ public class CatchService {
       BreedRepository breedRepository,
       StorageService storageService,
       ImageResizer imageResizer,
-      RateLimitService rateLimitService) {
+      RateLimitService rateLimitService,
+      FeedRankingService feedRankingService,
+      FeedCacheService feedCacheService) {
     this.catchRepository = catchRepository;
     this.likeRepository = likeRepository;
     this.commentRepository = commentRepository;
@@ -69,6 +75,8 @@ public class CatchService {
     this.storageService = storageService;
     this.imageResizer = imageResizer;
     this.rateLimitService = rateLimitService;
+    this.feedRankingService = feedRankingService;
+    this.feedCacheService = feedCacheService;
   }
 
   /**
@@ -133,7 +141,7 @@ public class CatchService {
         .isPublic(isPublic)
         .build();
 
-    return saveAndUpdateCounters(currentUser, dogCatch, breed);
+    return saveAndUpdateCounters(currentUser, dogCatch, breed, isPublic);
   }
 
   /**
@@ -171,6 +179,8 @@ public class CatchService {
     dogCatch.softDelete();
     catchRepository.save(dogCatch);
 
+    feedCacheService.removeFromFeeds(catchId);
+
     User owner = findActiveUserById(currentUser.getId());
     owner.decrementTotalCatches();
     userRepository.save(owner);
@@ -183,7 +193,8 @@ public class CatchService {
   /**
    * Dodaje polubienie do catcha.
    *
-   * <p>Podwojne polubienie zwraca ConflictException (HTTP 409).
+   * <p>Podwojne polubienie zwraca ConflictException (HTTP 409). Po dodaniu polubienia
+   * przeliczamy feedScore i aktualizujemy Redis cache (feed:public) — bez czekania na job.
    *
    * @param catchId ID polowania
    * @param currentUser zalogowany uzytkownik
@@ -199,6 +210,7 @@ public class CatchService {
 
     likeRepository.save(Like.of(currentUser, dogCatch));
     dogCatch.incrementLikeCount();
+    updateFeedScoreAndCache(dogCatch);
     catchRepository.save(dogCatch);
 
     log.debug("Like added: catchId={}, userId={}", catchId, currentUser.getId());
@@ -220,6 +232,7 @@ public class CatchService {
     if (like.isPresent()) {
       likeRepository.delete(like.get());
       dogCatch.decrementLikeCount();
+      updateFeedScoreAndCache(dogCatch);
       catchRepository.save(dogCatch);
       log.debug("Like removed: catchId={}, userId={}", catchId, currentUser.getId());
     }
@@ -278,6 +291,7 @@ public class CatchService {
     commentRepository.save(comment);
 
     dogCatch.incrementCommentCount();
+    updateFeedScoreAndCache(dogCatch);
     catchRepository.save(dogCatch);
 
     log.debug("Comment added: catchId={}, userId={}", catchId, currentUser.getId());
@@ -308,6 +322,7 @@ public class CatchService {
 
     DogCatch dogCatch = comment.getDogCatch();
     dogCatch.decrementCommentCount();
+    updateFeedScoreAndCache(dogCatch);
     catchRepository.save(dogCatch);
 
     log.debug("Comment deleted: commentId={}, userId={}", commentId, currentUser.getId());
@@ -371,10 +386,11 @@ public class CatchService {
       nextCursor = pageItems.get(pageItems.size() - 1).getCaughtAt().toString();
     }
 
-    List<UUID> likedIds = visibleItems.stream()
-        .filter(dc -> likeRepository.existsByUserIdAndDogCatchId(currentUser.getId(), dc.getId()))
-        .map(DogCatch::getId)
-        .toList();
+    Set<UUID> likedIds = visibleItems.isEmpty()
+        ? Set.of()
+        : likeRepository.findLikedCatchIdsByUserIdIn(
+            currentUser.getId(),
+            visibleItems.stream().map(DogCatch::getId).toList());
 
     List<CatchResponse> response = visibleItems.stream()
         .map(dc -> CatchResponse.from(dc, likedIds.contains(dc.getId())))
@@ -425,8 +441,36 @@ public class CatchService {
     }
   }
 
-  private CatchResponse saveAndUpdateCounters(User currentUser, DogCatch dogCatch, Breed breed) {
+  /**
+   * Przelicza feed score na podstawie aktualnych licznikow i aktualizuje encje + Redis.
+   *
+   * <p>Wywoływana po kazdej operacji która zmienia score: like, unlike, dodanie/usuniecie komentarza.
+   * Wymaga zaladowanego {@code breed} (eager lub w ramach aktywnej sesji Hibernate).
+   */
+  private void updateFeedScoreAndCache(DogCatch dogCatch) {
+    double newScore = feedRankingService.calculate(dogCatch);
+    dogCatch.updateFeedScore(newScore);
+    if (dogCatch.isPublic()) {
+      feedCacheService.addToPublicFeed(dogCatch.getId(), newScore);
+    }
+  }
+
+  private CatchResponse saveAndUpdateCounters(
+      User currentUser, DogCatch dogCatch, Breed breed, boolean isPublic) {
+    // Wylicz i zapisz poczatkowy feed score przed pierwszym save — Redis i DB dostaja ten sam score
+    double initialScore = feedRankingService.calculate(
+        dogCatch.getLikeCount(),
+        dogCatch.getCommentCount(),
+        breed.getRarityScore(),
+        dogCatch.getCaughtAt() != null ? dogCatch.getCaughtAt() : java.time.Instant.now());
+    dogCatch.updateFeedScore(initialScore);
+
     DogCatch saved = catchRepository.save(dogCatch);
+
+    // Dodaj do Redis public feed natychmiast po zapisie — bez czekania na FeedRebuildJob
+    if (isPublic) {
+      feedCacheService.addToPublicFeed(saved.getId(), initialScore);
+    }
 
     User owner = findActiveUserById(currentUser.getId());
     owner.incrementTotalCatches();
@@ -437,8 +481,8 @@ public class CatchService {
 
     userRepository.save(owner);
 
-    log.debug("Catch created: catchId={}, userId={}, breedId={}",
-        saved.getId(), currentUser.getId(), breed.getId());
+    log.debug("Catch created: catchId={}, userId={}, breedId={}, feedScore={}",
+        saved.getId(), currentUser.getId(), breed.getId(), initialScore);
 
     return CatchResponse.from(saved, false);
   }
