@@ -1,0 +1,97 @@
+# ===========================
+# PetsApp — Środowisko DEV
+# ===========================
+# Wymagany plik .env (skopiuj z .env.example i uzupełnij)
+# Uruchamia: PostgreSQL 16, Redis 7, MailHog (email dev), MinIO (S3 lokalnie)
+#
+# Start:  docker compose up -d
+# Stop:   docker compose down
+# Reset:  docker compose down -v   (usuwa dane!)
+# Logi:   docker compose logs -f [service]
+
+services:
+
+  # ---- PostgreSQL 16 ----
+  postgres:
+    image: postgres:16-alpine
+    container_name: petsapp_postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - petsapp_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- Redis 7 ----
+  redis:
+    image: redis:7-alpine
+    container_name: petsapp_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - petsapp_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- MailHog (email dev — http://localhost:8025) ----
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: petsapp_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - petsapp_network
+
+  # ---- MinIO (S3-compatible local storage) ----
+  minio:
+    image: minio/minio:latest
+    container_name: petsapp_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console
+    volumes:
+      - minio_data:/data
+    networks:
+      - petsapp_network
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+
+networks:
+  petsapp_network:
+    driver: bridge
