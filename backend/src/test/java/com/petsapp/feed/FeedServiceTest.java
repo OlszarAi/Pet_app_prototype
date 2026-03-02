@@ -264,7 +264,7 @@ class FeedServiceTest extends AbstractIntegrationTest {
 
       // Tworzymy relacje znajomosci bezposrednio w DB (encja Friendship dodana w Kroku 8)
       jdbcTemplate.update(
-          "INSERT INTO friendship (id, requester_id, addressee_id, status) VALUES (?::uuid, ?::uuid, ?::uuid, 'accepted')",
+          "INSERT INTO friendship (id, requester_id, addressee_id, status) VALUES (?::uuid, ?::uuid, ?::uuid, 'ACCEPTED')",
           UUID.randomUUID().toString(),
           userA.getId().toString(),
           userB.getId().toString());
@@ -289,7 +289,7 @@ class FeedServiceTest extends AbstractIntegrationTest {
 
       // Znajomosc oczekujaca (pending) — catch NIE powinien sie pojawic
       jdbcTemplate.update(
-          "INSERT INTO friendship (id, requester_id, addressee_id, status) VALUES (?::uuid, ?::uuid, ?::uuid, 'pending')",
+          "INSERT INTO friendship (id, requester_id, addressee_id, status) VALUES (?::uuid, ?::uuid, ?::uuid, 'PENDING')",
           UUID.randomUUID().toString(),
           userA.getId().toString(),
           userB.getId().toString());

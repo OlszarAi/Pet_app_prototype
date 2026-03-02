@@ -87,3 +87,8 @@ app:
       - image/webp
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:3000}
+# Firebase — push notifications przez FCM
+# firebase.enabled=false w dev/test — nie wymaga konfiguracji credentials
+firebase:
+  enabled: false
+  credentials-file: ${FIREBASE_CREDENTIALS_FILE:}

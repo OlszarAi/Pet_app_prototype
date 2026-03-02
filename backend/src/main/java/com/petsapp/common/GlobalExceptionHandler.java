@@ -8,6 +8,7 @@ import com.petsapp.breed.PokedexAccessDeniedException;
 import com.petsapp.catch_.CatchAccessDeniedException;
 import com.petsapp.catch_.CatchNotFoundException;
 import com.petsapp.catch_.ImageProcessingException;
+import com.petsapp.friend.FriendshipNotFoundException;
 import com.petsapp.user.AvatarProcessingException;
 import com.petsapp.user.PasswordMismatchException;
 import com.petsapp.user.UnsupportedFileFormatException;
@@ -154,6 +155,14 @@ public class GlobalExceptionHandler {
   /** Uzytkownik nie zostal znaleziony lub zostal soft-deleted. 404 Not Found. */
   @ExceptionHandler(UserNotFoundException.class)
   public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.NOT_FOUND, ex.getMessage())));
+  }
+
+  /** Relacja znajomosci nie istnieje lub nie nalezy do biezacego uzytkownika. 404 Not Found. */
+  @ExceptionHandler(FriendshipNotFoundException.class)
+  public ResponseEntity<ApiResponse<Void>> handleFriendshipNotFoundException(
+      FriendshipNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .body(ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.NOT_FOUND, ex.getMessage())));
   }

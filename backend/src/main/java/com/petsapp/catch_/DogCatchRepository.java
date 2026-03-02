@@ -232,7 +232,7 @@ public interface DogCatchRepository extends JpaRepository<DogCatch, UUID> {
           INNER JOIN friendship f
             ON (f.requester_id = :userId AND f.addressee_id = dc.user_id)
             OR (f.addressee_id = :userId AND f.requester_id = dc.user_id)
-          WHERE f.status = 'accepted'
+          WHERE f.status = 'ACCEPTED'
             AND dc.deleted_at IS NULL
             AND dc.is_public = true
           ORDER BY dc.caught_at DESC
@@ -255,7 +255,7 @@ public interface DogCatchRepository extends JpaRepository<DogCatch, UUID> {
           INNER JOIN friendship f
             ON (f.requester_id = :userId AND f.addressee_id = dc.user_id)
             OR (f.addressee_id = :userId AND f.requester_id = dc.user_id)
-          WHERE f.status = 'accepted'
+          WHERE f.status = 'ACCEPTED'
             AND dc.deleted_at IS NULL
             AND dc.is_public = true
             AND dc.caught_at < :cursor

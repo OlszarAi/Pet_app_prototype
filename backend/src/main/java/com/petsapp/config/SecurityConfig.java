@@ -49,7 +49,8 @@ public class SecurityConfig {
     "/auth/google",
     "/users/search",
     "/breeds",
-    "/breeds/**"
+    "/breeds/**",
+    "/achievements"
   };
 
   private final JwtFilter jwtFilter;

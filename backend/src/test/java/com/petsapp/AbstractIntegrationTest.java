@@ -1,8 +1,10 @@
 package com.petsapp;
 
 import com.petsapp.feed.FeedCacheService;
+import com.petsapp.notification.PushService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -17,13 +19,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * wymagany w testach — wylaczony przez profil "test" (application-test.yml). RateLimitService uzywa
  * lokalnej mapy in-memory, wiec Redis nie jest potrzebny w tej fazie testow.
  *
- * <p>FeedCacheService jest mockowany na poziomie klasy bazowej aby uniknac koniecznosci
- * podlaczenia do Redis. Kazda klasa testowa moze nadpisac zachowanie mocka przez @BeforeEach.
+ * <p>FeedCacheService i PushService sa mockowane na poziomie klasy bazowej aby uniknac koniecznosci
+ * podlaczenia do Redis ani Firebase. Kazda klasa testowa moze nadpisac zachowanie mockow przez
+ * @BeforeEach.
  */
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
 @MockBean(FeedCacheService.class)
+@MockBean(PushService.class)
+@MockBean(StringRedisTemplate.class)
 public abstract class AbstractIntegrationTest {
 
   @Container

@@ -4,12 +4,14 @@ import com.petsapp.auth.ConflictException;
 import com.petsapp.auth.RateLimitService;
 import com.petsapp.auth.User;
 import com.petsapp.auth.UserRepository;
+import com.petsapp.achievement.AchievementChecker;
 import com.petsapp.breed.Breed;
 import com.petsapp.breed.BreedNotFoundException;
 import com.petsapp.breed.BreedRepository;
 import com.petsapp.common.ApiResponse;
 import com.petsapp.feed.FeedCacheService;
 import com.petsapp.feed.FeedRankingService;
+import com.petsapp.notification.NotificationService;
 import com.petsapp.storage.StorageService;
 import com.petsapp.user.UnsupportedFileFormatException;
 import com.petsapp.user.UserNotFoundException;
@@ -53,6 +55,8 @@ public class CatchService {
   private final RateLimitService rateLimitService;
   private final FeedRankingService feedRankingService;
   private final FeedCacheService feedCacheService;
+  private final AchievementChecker achievementChecker;
+  private final NotificationService notificationService;
 
   public CatchService(
       DogCatchRepository catchRepository,
@@ -65,7 +69,9 @@ public class CatchService {
       ImageResizer imageResizer,
       RateLimitService rateLimitService,
       FeedRankingService feedRankingService,
-      FeedCacheService feedCacheService) {
+      FeedCacheService feedCacheService,
+      AchievementChecker achievementChecker,
+      NotificationService notificationService) {
     this.catchRepository = catchRepository;
     this.likeRepository = likeRepository;
     this.commentRepository = commentRepository;
@@ -77,6 +83,8 @@ public class CatchService {
     this.rateLimitService = rateLimitService;
     this.feedRankingService = feedRankingService;
     this.feedCacheService = feedCacheService;
+    this.achievementChecker = achievementChecker;
+    this.notificationService = notificationService;
   }
 
   /**
@@ -213,6 +221,12 @@ public class CatchService {
     updateFeedScoreAndCache(dogCatch);
     catchRepository.save(dogCatch);
 
+    // Powiadom wlasciciela catcha asynchronicznie (pomijamy jezeli lajkujemy samego siebie)
+    User catchOwner = dogCatch.getUser();
+    if (!catchOwner.getId().equals(currentUser.getId())) {
+      notificationService.notifyLike(catchOwner, currentUser.getUsername(), catchId);
+    }
+
     log.debug("Like added: catchId={}, userId={}", catchId, currentUser.getId());
     return CatchResponse.from(dogCatch, true);
   }
@@ -293,6 +307,12 @@ public class CatchService {
     dogCatch.incrementCommentCount();
     updateFeedScoreAndCache(dogCatch);
     catchRepository.save(dogCatch);
+
+    // Powiadom wlasciciela catcha asynchronicznie (pomijamy jezeli komentujemy samego siebie)
+    User catchOwner = dogCatch.getUser();
+    if (!catchOwner.getId().equals(currentUser.getId())) {
+      notificationService.notifyComment(catchOwner, currentUser.getUsername(), catchId);
+    }
 
     log.debug("Comment added: catchId={}, userId={}", catchId, currentUser.getId());
     return CommentResponse.from(comment);
@@ -483,6 +503,9 @@ public class CatchService {
 
     log.debug("Catch created: catchId={}, userId={}, breedId={}, feedScore={}",
         saved.getId(), currentUser.getId(), breed.getId(), initialScore);
+
+    // Sprawdz osiagniecia asynchronicznie — nie blokuje odpowiedzi HTTP
+    achievementChecker.checkAfterCatch(owner, breed.getRarityScore());
 
     return CatchResponse.from(saved, false);
   }
