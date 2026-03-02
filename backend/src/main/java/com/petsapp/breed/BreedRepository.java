@@ -16,22 +16,25 @@ public interface BreedRepository extends JpaRepository<Breed, Integer> {
   /**
    * Wyszukuje aktywne rasy z opcjonalnym filtrowaniem po nazwie, grupie i rozmiarze.
    *
-   * <p>Parametry null sa ignorowane — metoda dziala jak dynamic query bez Specification API dzieki
-   * jawnym warunkom CASE WHEN.
+   * <p>Uzywa natywnego SQL z CAST(:param AS TEXT) — rozwiazuje blad PostgreSQL
+   * "function lower(bytea) does not exist" gdy JDBC przekazuje null bez informacji o typie.
    */
   @Query(
-      """
-      SELECT b FROM Breed b
-      WHERE b.isActive = true
-        AND (:q IS NULL OR LOWER(b.name) LIKE LOWER(CONCAT('%', :q, '%'))
-              OR LOWER(b.namePl) LIKE LOWER(CONCAT('%', :q, '%')))
-        AND (:group IS NULL OR b.group = :group)
-        AND (:sizeCategory IS NULL OR b.sizeCategory = :sizeCategory)
-      ORDER BY b.rarityScore ASC, b.name ASC
-      """)
+      value =
+          """
+          SELECT * FROM breed
+          WHERE is_active = true
+            AND (CAST(:q AS TEXT) IS NULL
+                 OR LOWER(name) LIKE LOWER(CONCAT('%', :q, '%'))
+                 OR LOWER(name_pl) LIKE LOWER(CONCAT('%', :q, '%')))
+            AND (CAST(:grp AS TEXT) IS NULL OR "group" = CAST(:grp AS TEXT))
+            AND (CAST(:sizeCategory AS TEXT) IS NULL OR size_category = CAST(:sizeCategory AS TEXT))
+          ORDER BY rarity_score ASC, name ASC
+          """,
+      nativeQuery = true)
   List<Breed> findAllByFilter(
       @Param("q") String q,
-      @Param("group") String group,
+      @Param("grp") String group,
       @Param("sizeCategory") String sizeCategory);
 
   /** Zwraca wszystkie unikalne grupy aktywnych ras — przydatne do budowania filtrow w UI. */
