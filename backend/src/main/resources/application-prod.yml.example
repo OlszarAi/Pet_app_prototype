@@ -1,0 +1,101 @@
+# =====================================================================
+# PetsApp — Konfiguracja PRODUKCYJNA
+# =====================================================================
+# Ten plik jest PRZYKŁADEM. Nie commituj nigdy wypełnionej wersji.
+# Na Railway: wgraj jako zmienne środowiskowe (Settings → Variables)
+# Na serwerze: skopiuj jako application-prod.yml i wypełnij wartości
+#
+# Wymagane serwisy zewnętrzne:
+#   - PostgreSQL  → Railway Plugin lub Supabase (darmowe)
+#   - Redis       → Railway Plugin lub Upstash (darmowe)
+#   - Email       → Resend.com (darmowe: 3000 emaili/mies.)
+#   - Storage     → Cloudflare R2 (darmowe: 10GB)
+# =====================================================================
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    # Railway daje DATABASE_URL w formacie postgresql://user:pass@host:port/db
+    # Spring potrzebuje jdbc:postgresql:// prefix — Railway ustawia DATABASE_URL
+    # automatycznie gdy dodasz PostgreSQL plugin, ale Spring Boot czyta JDBC URL:
+    url: ${SPRING_DATASOURCE_URL}           # np. jdbc:postgresql://host:5432/petsapp
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 5                  # Railway free tier ma limit połączeń
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  data:
+    redis:
+      # Upstash/Railway Redis — ustaw REDIS_URL lub osobno HOST/PORT/PASSWORD
+      url: ${REDIS_URL:}                    # Upstash daje rediss:// URL (z TLS)
+      # Alternatywnie osobno:
+      # host: ${REDIS_HOST}
+      # port: ${REDIS_PORT:6379}
+      # password: ${REDIS_PASSWORD}
+      # ssl:
+      #   enabled: true                     # Upstash wymaga TLS
+      timeout: 5000ms
+
+  mail:
+    # Resend.com — SMTP
+    host: smtp.resend.com
+    port: 465
+    username: resend                        # stałe dla Resend
+    password: ${RESEND_API_KEY}             # API key z resend.com
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: false
+    from: noreply@twoja-domena.com          # musi być zweryfikowana w Resend
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}                   # min 32 znaków, losowy string
+    access-token-expiration-ms: 900000      # 15 min
+    refresh-token-expiration-ms: 604800000  # 7 dni
+
+  storage:
+    # Cloudflare R2 — kompatybilne z S3 API
+    type: s3
+    endpoint: https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com
+    bucket: ${CF_R2_BUCKET:petsapp-prod}
+    access-key: ${CF_R2_ACCESS_KEY}         # R2 API Token → Access Key ID
+    secret-key: ${CF_R2_SECRET_KEY}         # R2 API Token → Secret Access Key
+    region: auto                            # R2 używa "auto"
+    # URL publiczny do zdjęć (WAŻNE dla R2!):
+    # Opcja A: R2 custom domain (najlepsza) — np. https://media.twoja-domena.com
+    # Opcja B: R2 public bucket URL — dashboard R2 → bucket → Public Access → włącz → daje https://pub-xxx.r2.dev
+    # Opcja C: puste → URL będzie wymagał autoryzacji (nie zadziała dla zdjęć profilowych)
+    public-url-base: ${CF_R2_PUBLIC_URL}    # np. https://pub-abc123.r2.dev lub https://media.twoja-domena.com
+
+  frontend-url: ${FRONTEND_URL:https://twoja-aplikacja.expo.dev}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://twoja-aplikacja.expo.dev}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+
+# Logging — mniej verbose na prod
+logging:
+  level:
+    root: WARN
+    com.petsapp: INFO
+    org.flywaydb: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{20} - %msg%n"

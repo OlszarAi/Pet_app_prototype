@@ -28,10 +28,12 @@ public class S3StorageService implements StorageService {
   private final S3Client s3Client;
   private final String bucket;
   private final String endpointUrl;
+  private final String publicUrlBase;
 
   public S3StorageService(StorageProperties properties) {
     this.bucket = properties.getBucket();
     this.endpointUrl = properties.getEndpoint();
+    this.publicUrlBase = properties.getPublicUrlBase();
 
     AwsBasicCredentials credentials =
         AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey());
@@ -77,10 +79,17 @@ public class S3StorageService implements StorageService {
   }
 
   /**
-   * Buduje publiczny URL do zasobu. Dla MinIO format to: {endpoint}/{bucket}/{key} Dla AWS S3
-   * format to: https://{bucket}.s3.{region}.amazonaws.com/{key}
+   * Buduje publiczny URL do zasobu.
+   *
+   * <p>Priorytet:
+   * 1. publicUrlBase z konfiguracji (np. Cloudflare R2 public domain, CDN)
+   * 2. endpointUrl (MinIO dev)
+   * 3. standardowy AWS S3 URL
    */
   private String buildPublicUrl(String key) {
+    if (publicUrlBase != null && !publicUrlBase.isBlank()) {
+      return publicUrlBase.replaceAll("/+$", "") + "/" + key;
+    }
     if (endpointUrl != null && !endpointUrl.isBlank()) {
       return endpointUrl + "/" + bucket + "/" + key;
     }
