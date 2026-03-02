@@ -21,6 +21,13 @@ app:
     access-token-expiration-ms: 900000
     refresh-token-expiration-ms: 604800000
   frontend-url: http://localhost:3000
+  # StorageService jest mockowany przez @MockBean w testach — wartosci nigdy nie sa uzywane
+  storage:
+    type: minio
+    endpoint: http://localhost:9000
+    bucket: petsapp-test
+    access-key: test-access-key
+    secret-key: test-secret-key
 
 logging:
   level:

@@ -3,6 +3,10 @@ package com.petsapp.common;
 import com.petsapp.auth.AuthException;
 import com.petsapp.auth.ConflictException;
 import com.petsapp.auth.RateLimitExceededException;
+import com.petsapp.user.AvatarProcessingException;
+import com.petsapp.user.PasswordMismatchException;
+import com.petsapp.user.UnsupportedFileFormatException;
+import com.petsapp.user.UserNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -97,6 +101,46 @@ public class GlobalExceptionHandler {
             ApiResponse.error(
                 ApiResponse.ErrorDetail.of(
                     ErrorCode.FILE_TOO_LARGE, "File size exceeds the 10MB limit")));
+  }
+
+  /** Uzytkownik nie zostal znaleziony lub zostal soft-deleted. 404 Not Found. */
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(ApiResponse.error(ApiResponse.ErrorDetail.of(ErrorCode.NOT_FOUND, ex.getMessage())));
+  }
+
+  /**
+   * Niedozwolony format pliku (np. nieprawidlowy MIME type avatara). 415 Unsupported Media Type.
+   */
+  @ExceptionHandler(UnsupportedFileFormatException.class)
+  public ResponseEntity<ApiResponse<Void>> handleUnsupportedFileFormat(
+      UnsupportedFileFormatException ex) {
+    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+        .body(
+            ApiResponse.error(
+                ApiResponse.ErrorDetail.of(ErrorCode.UNSUPPORTED_FORMAT, ex.getMessage())));
+  }
+
+  /** Blad przetwarzania obrazu avatara (uszkodzony plik). 400 Bad Request. */
+  @ExceptionHandler(AvatarProcessingException.class)
+  public ResponseEntity<ApiResponse<Void>> handleAvatarProcessingException(
+      AvatarProcessingException ex) {
+    log.warn("Avatar processing failed", ex);
+    return ResponseEntity.badRequest()
+        .body(
+            ApiResponse.error(
+                ApiResponse.ErrorDetail.of(
+                    ErrorCode.VALIDATION_ERROR, "Could not process the uploaded image.")));
+  }
+
+  /** Nieprawidlowe aktualne haslo przy zmianie hasla. 400 Bad Request. */
+  @ExceptionHandler(PasswordMismatchException.class)
+  public ResponseEntity<ApiResponse<Void>> handlePasswordMismatch(PasswordMismatchException ex) {
+    return ResponseEntity.badRequest()
+        .body(
+            ApiResponse.error(
+                ApiResponse.ErrorDetail.of(ErrorCode.VALIDATION_ERROR, ex.getMessage())));
   }
 
   /**

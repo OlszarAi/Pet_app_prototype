@@ -1,8 +1,13 @@
 package com.petsapp.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petsapp.auth.JwtFilter;
+import com.petsapp.common.ApiResponse;
+import com.petsapp.common.ErrorCode;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,13 +46,16 @@ public class SecurityConfig {
     "/auth/refresh",
     "/auth/forgot-password",
     "/auth/reset-password",
-    "/auth/google"
+    "/auth/google",
+    "/users/search"
   };
 
   private final JwtFilter jwtFilter;
+  private final ObjectMapper objectMapper;
 
-  public SecurityConfig(JwtFilter jwtFilter) {
+  public SecurityConfig(JwtFilter jwtFilter, ObjectMapper objectMapper) {
     this.jwtFilter = jwtFilter;
+    this.objectMapper = objectMapper;
   }
 
   @Bean
@@ -57,6 +65,31 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth -> auth.requestMatchers(PUBLIC_ENDPOINTS).permitAll().anyRequest().authenticated())
+        .exceptionHandling(
+            ex ->
+                ex
+                    // Brak tokena lub nie-parsable token -> 401
+                    .authenticationEntryPoint(
+                        (request, response, authException) -> {
+                          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                          response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                          objectMapper.writeValue(
+                              response.getWriter(),
+                              ApiResponse.error(
+                                  ApiResponse.ErrorDetail.of(
+                                      ErrorCode.UNAUTHORIZED, "Authentication required")));
+                        })
+                    // Zalogowany, ale brak wymaganych uprawnien -> 403
+                    .accessDeniedHandler(
+                        (request, response, accessDeniedException) -> {
+                          response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                          response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                          objectMapper.writeValue(
+                              response.getWriter(),
+                              ApiResponse.error(
+                                  ApiResponse.ErrorDetail.of(
+                                      ErrorCode.FORBIDDEN, "Access denied")));
+                        }))
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

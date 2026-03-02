@@ -1,5 +1,6 @@
 package com.petsapp.auth;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,4 +41,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
       "SELECT u FROM User u WHERE u.oauthProvider = :provider AND u.oauthId = :oauthId AND u.deletedAt IS NULL")
   Optional<User> findByOauthProviderAndOauthId(
       @Param("provider") String provider, @Param("oauthId") String oauthId);
+
+  /**
+   * Wyszukuje aktywnych uzytkownikow ktorych username zaczyna sie od podanego prefiksu
+   * (case-insensitive). Wyniki sa posortowane alfabetycznie i ograniczone do podanego limitu.
+   */
+  @Query(
+      value =
+          "SELECT * FROM \"user\" WHERE lower(username) LIKE lower(concat(:prefix, '%'))"
+              + " AND deleted_at IS NULL ORDER BY username LIMIT :limit",
+      nativeQuery = true)
+  List<User> searchActiveByUsernamePrefix(
+      @Param("prefix") String prefix, @Param("limit") int limit);
 }
