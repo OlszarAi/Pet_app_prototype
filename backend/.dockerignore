@@ -1,0 +1,11 @@
+# Pliki niepotrzebne w Docker image
+target/
+*.md
+*.txt
+.git
+.gitignore
+src/test/
+*.log
+.env
+.env.*
+!.env.example

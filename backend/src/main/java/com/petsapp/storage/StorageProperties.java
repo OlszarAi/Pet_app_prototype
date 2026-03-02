@@ -15,6 +15,7 @@ public class StorageProperties {
 
   private String type = "minio";
   private String endpoint;
+  private String publicUrlBase;   // opcjonalne — publiczny base URL (R2 public access, CDN)
   private String bucket;
   private String accessKey;
   private String secretKey;
@@ -66,5 +67,13 @@ public class StorageProperties {
 
   public void setRegion(String region) {
     this.region = region;
+  }
+
+  public String getPublicUrlBase() {
+    return publicUrlBase;
+  }
+
+  public void setPublicUrlBase(String publicUrlBase) {
+    this.publicUrlBase = publicUrlBase;
   }
 }
