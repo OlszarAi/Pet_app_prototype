@@ -94,24 +94,28 @@ public class AchievementChecker {
    * @return true jesli warunek jest spelniony
    */
   private boolean evaluateCondition(User user, Achievement achievement, int caughtBreedRarity) {
-    return switch (achievement.getConditionType()) {
-      case "total_catches" -> user.getTotalCatches() >= achievement.getConditionValue();
-      case "unique_breeds" -> user.getUniqueBreeds() >= achievement.getConditionValue();
-      case "rare_catch" -> caughtBreedRarity >= achievement.getConditionValue();
-      case "friends_count" -> {
+    ConditionType conditionType;
+    try {
+      conditionType = ConditionType.fromDbValue(achievement.getConditionType());
+    } catch (IllegalArgumentException e) {
+      log.warn(
+          "Unknown condition_type '{}' for achievement code={}",
+          achievement.getConditionType(),
+          achievement.getCode());
+      return false;
+    }
+
+    return switch (conditionType) {
+      case TOTAL_CATCHES -> user.getTotalCatches() >= achievement.getConditionValue();
+      case UNIQUE_BREEDS -> user.getUniqueBreeds() >= achievement.getConditionValue();
+      case RARE_CATCH -> caughtBreedRarity >= achievement.getConditionValue();
+      case FRIENDS_COUNT -> {
         long friendCount = friendshipRepository.countAcceptedFriends(user.getId());
         yield friendCount >= achievement.getConditionValue();
       }
-      case "streak" -> {
+      case STREAK -> {
         int streak = calculateStreak(user);
         yield streak >= achievement.getConditionValue();
-      }
-      default -> {
-        log.warn(
-            "Unknown condition_type '{}' for achievement code={}",
-            achievement.getConditionType(),
-            achievement.getCode());
-        yield false;
       }
     };
   }
