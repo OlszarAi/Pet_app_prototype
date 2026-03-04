@@ -102,7 +102,7 @@ class OAuthServiceTest {
     User savedUser = buildMinimalUser("new@gmail.com", "nowy_uzytkownik");
     when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-    User result = oauthService.authenticateWithGoogle("id-token");
+    oauthService.authenticateWithGoogle("id-token");
 
     verify(userRepository).save(userCaptor.capture());
     User capturedUser = userCaptor.getValue();

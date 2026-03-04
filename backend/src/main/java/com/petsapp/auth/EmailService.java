@@ -21,15 +21,9 @@ public class EmailService {
   private static final int VERIFICATION_CODE_DIGITS = 6;
 
   private final org.springframework.mail.javamail.JavaMailSender mailSender;
-  private final String frontendUrl;
 
-  public EmailService(
-      org.springframework.mail.javamail.JavaMailSender mailSender,
-      @org.springframework.beans.factory.annotation.Value(
-              "${app.frontend-url:http://localhost:3000}")
-          String frontendUrl) {
+  public EmailService(org.springframework.mail.javamail.JavaMailSender mailSender) {
     this.mailSender = mailSender;
-    this.frontendUrl = frontendUrl;
   }
 
   /**

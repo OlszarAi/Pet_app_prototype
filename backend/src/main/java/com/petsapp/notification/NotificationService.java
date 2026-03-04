@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -52,19 +53,32 @@ public class NotificationService {
     this.pushService = pushService;
   }
 
+  // --- private helpers ---
+
+  /**
+   * Sprawdza czy powiadomienia danego typu sa wlaczone dla uzytkownika.
+   * Domyslnie (brak ustawien) — wlaczone.
+   */
+  private boolean isPushEnabled(UUID userId, Function<UserSettings, Boolean> getter) {
+    return userSettingsRepository.findById(userId).map(getter).orElse(true);
+  }
+
+  /** Buduje prosty jednoklucowy JSON: {"key": "value"}. */
+  private static String jsonField(String key, String value) {
+    return String.format("{\"%s\":\"%s\"}", key, value);
+  }
+
   /**
    * Tworzy powiadomienie o nowym lajku. Grupuje szybkie lajki (< 1 min) w jedno powiadomienie.
    *
    * @param catchOwner wlasciciel polowania (odbiorca powiadomienia)
-   * @param likerUsername nazwa uzytkownika ktory polakowal
+   * @param likerUsername nazwa uzytkownika ktory polubil
    * @param catchId ID polowania
    */
   @Async("taskExecutor")
   @Transactional
   public void notifyLike(User catchOwner, String likerUsername, UUID catchId) {
-    Optional<UserSettings> settingsOpt =
-        userSettingsRepository.findById(catchOwner.getId());
-    if (settingsOpt.isPresent() && !settingsOpt.get().isPushLikes()) {
+    if (!isPushEnabled(catchOwner.getId(), UserSettings::isPushLikes)) {
       log.debug("Push likes disabled for userId={}", catchOwner.getId());
       return;
     }
@@ -82,7 +96,7 @@ public class NotificationService {
           catchOwner.getId());
       pushService.sendToUser(
           catchOwner.getId(),
-          "Nowy polubienia",
+          "Nowe polubienia",
           likerUsername + " i inni polubili Twoje zdjecie",
           "catchId",
           catchId.toString());
@@ -94,8 +108,8 @@ public class NotificationService {
             .user(catchOwner)
             .type(NotificationTypes.LIKE)
             .title("Nowe polubienie")
-            .body(likerUsername + " polakowal Twoje zdjecie")
-            .dataJson("{\"catchId\":\"" + catchId + "\"}")
+            .body(likerUsername + " polubil Twoje zdjecie")
+            .dataJson(jsonField("catchId", catchId.toString()))
             .build();
     notificationRepository.save(notification);
 
@@ -117,9 +131,7 @@ public class NotificationService {
   @Async("taskExecutor")
   @Transactional
   public void notifyComment(User catchOwner, String commenterUsername, UUID catchId) {
-    Optional<UserSettings> settingsOpt =
-        userSettingsRepository.findById(catchOwner.getId());
-    if (settingsOpt.isPresent() && !settingsOpt.get().isPushComments()) {
+    if (!isPushEnabled(catchOwner.getId(), UserSettings::isPushComments)) {
       return;
     }
 
@@ -129,7 +141,7 @@ public class NotificationService {
             .type(NotificationTypes.COMMENT)
             .title("Nowy komentarz")
             .body(commenterUsername + " skomentowal Twoje zdjecie")
-            .dataJson("{\"catchId\":\"" + catchId + "\"}")
+            .dataJson(jsonField("catchId", catchId.toString()))
             .build();
     notificationRepository.save(notification);
 
@@ -151,9 +163,7 @@ public class NotificationService {
   @Async("taskExecutor")
   @Transactional
   public void notifyFriendRequest(User addressee, String requesterUsername, UUID friendshipId) {
-    Optional<UserSettings> settingsOpt =
-        userSettingsRepository.findById(addressee.getId());
-    if (settingsOpt.isPresent() && !settingsOpt.get().isPushFriendRequests()) {
+    if (!isPushEnabled(addressee.getId(), UserSettings::isPushFriendRequests)) {
       return;
     }
 
@@ -163,7 +173,7 @@ public class NotificationService {
             .type(NotificationTypes.FRIEND_REQUEST)
             .title("Nowa prosba o znajomosc")
             .body(requesterUsername + " chce dodac Cie do znajomych")
-            .dataJson("{\"friendshipId\":\"" + friendshipId + "\"}")
+            .dataJson(jsonField("friendshipId", friendshipId.toString()))
             .build();
     notificationRepository.save(notification);
 
@@ -184,9 +194,7 @@ public class NotificationService {
   @Async("taskExecutor")
   @Transactional
   public void notifyFriendAccepted(User requester, String accepterUsername) {
-    Optional<UserSettings> settingsOpt =
-        userSettingsRepository.findById(requester.getId());
-    if (settingsOpt.isPresent() && !settingsOpt.get().isPushFriendRequests()) {
+    if (!isPushEnabled(requester.getId(), UserSettings::isPushFriendRequests)) {
       return;
     }
 
@@ -194,7 +202,7 @@ public class NotificationService {
         Notification.builder()
             .user(requester)
             .type(NotificationTypes.FRIEND_ACCEPTED)
-            .title("Prosby zaakceptowana")
+            .title("Prosba zaakceptowana")
             .body(accepterUsername + " zaakceptowal Twoja prosbe o znajomosc")
             .build();
     notificationRepository.save(notification);
@@ -213,8 +221,7 @@ public class NotificationService {
   @Async("taskExecutor")
   @Transactional
   public void notifyAchievement(User user, String achievementName, String achievementCode) {
-    Optional<UserSettings> settingsOpt = userSettingsRepository.findById(user.getId());
-    if (settingsOpt.isPresent() && !settingsOpt.get().isPushAchievements()) {
+    if (!isPushEnabled(user.getId(), UserSettings::isPushAchievements)) {
       return;
     }
 
@@ -224,7 +231,7 @@ public class NotificationService {
             .type(NotificationTypes.ACHIEVEMENT)
             .title("Nowe osiagniecie!")
             .body("Odblokowales: " + achievementName)
-            .dataJson("{\"achievementCode\":\"" + achievementCode + "\"}")
+            .dataJson(jsonField("achievementCode", achievementCode))
             .build();
     notificationRepository.save(notification);
 

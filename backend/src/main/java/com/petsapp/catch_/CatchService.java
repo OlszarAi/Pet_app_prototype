@@ -1,6 +1,6 @@
 package com.petsapp.catch_;
 
-import com.petsapp.auth.ConflictException;
+import com.petsapp.common.ConflictException;
 import com.petsapp.auth.RateLimitService;
 import com.petsapp.auth.User;
 import com.petsapp.auth.UserRepository;
@@ -13,7 +13,7 @@ import com.petsapp.feed.FeedCacheService;
 import com.petsapp.feed.FeedRankingService;
 import com.petsapp.notification.NotificationService;
 import com.petsapp.storage.StorageService;
-import com.petsapp.user.UnsupportedFileFormatException;
+import com.petsapp.common.UnsupportedFileFormatException;
 import com.petsapp.user.UserNotFoundException;
 import java.io.IOException;
 import java.time.Instant;

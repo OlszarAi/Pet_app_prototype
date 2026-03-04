@@ -1,5 +1,6 @@
 package com.petsapp.auth;
 
+import com.petsapp.common.ConflictException;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
