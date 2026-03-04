@@ -27,8 +27,6 @@ class PasswordResetIntegrationTest extends AbstractIntegrationTest {
 
   @Autowired private AuthService authService;
 
-  @Autowired private UserRepository userRepository;
-
   @Autowired private PasswordResetRepository passwordResetRepository;
 
   @Autowired private RefreshTokenRepository refreshTokenRepository;

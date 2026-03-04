@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 
 import com.petsapp.AbstractIntegrationTest;
+import com.petsapp.common.ConflictException;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,7 +30,6 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
 
   @Autowired private AuthService authService;
   @Autowired private UserRepository userRepository;
-  @Autowired private RefreshTokenRepository refreshTokenRepository;
 
   @MockBean private EmailService emailService;
 

@@ -1,4 +1,4 @@
-package com.petsapp.user;
+package com.petsapp.common;
 
 /**
  * Rzucany gdy uzytkownik wgrywa plik w niedozwolonym formacie.

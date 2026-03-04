@@ -1,6 +1,6 @@
 package com.petsapp.friend;
 
-import com.petsapp.auth.ConflictException;
+import com.petsapp.common.ConflictException;
 import com.petsapp.auth.User;
 import com.petsapp.auth.UserRepository;
 import com.petsapp.common.ApiResponse;
@@ -8,7 +8,6 @@ import com.petsapp.notification.NotificationService;
 import com.petsapp.user.UserNotFoundException;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ public class FriendService {
 
   private static final Logger log = LoggerFactory.getLogger(FriendService.class);
   private static final String LEADERBOARD_CACHE_PREFIX = "leaderboard:";
-  private static final long LEADERBOARD_TTL_SECONDS = 3600L; // 1h
 
   private final FriendshipRepository friendshipRepository;
   private final UserRepository userRepository;

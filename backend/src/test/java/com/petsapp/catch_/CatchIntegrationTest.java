@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.petsapp.AbstractIntegrationTest;
 import com.petsapp.auth.AuthService;
-import com.petsapp.auth.ConflictException;
+import com.petsapp.common.ConflictException;
 import com.petsapp.auth.EmailService;
 import com.petsapp.auth.RegisterRequest;
 import com.petsapp.auth.User;
@@ -169,7 +169,7 @@ class CatchIntegrationTest extends AbstractIntegrationTest {
             () ->
                 catchService.createCatch(
                     user, getFirstBreed().getId(), gifFile, null, null, null, null, true))
-        .isInstanceOf(com.petsapp.user.UnsupportedFileFormatException.class);
+        .isInstanceOf(com.petsapp.common.UnsupportedFileFormatException.class);
   }
 
   // -------------------------
