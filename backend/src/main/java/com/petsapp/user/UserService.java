@@ -1,11 +1,12 @@
 package com.petsapp.user;
 
-import com.petsapp.auth.ConflictException;
+import com.petsapp.common.ConflictException;
 import com.petsapp.auth.RefreshTokenRepository;
 import com.petsapp.auth.User;
 import com.petsapp.auth.UserRepository;
 import com.petsapp.auth.UserSettings;
 import com.petsapp.auth.UserSettingsRepository;
+import com.petsapp.common.UnsupportedFileFormatException;
 import com.petsapp.storage.StorageService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

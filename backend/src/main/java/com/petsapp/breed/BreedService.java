@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class BreedService {
-
-  private static final Logger log = LoggerFactory.getLogger(BreedService.class);
 
   private final BreedRepository breedRepository;
   private final DogCatchRepository dogCatchRepository;

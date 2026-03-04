@@ -12,7 +12,8 @@ import static org.mockito.Mockito.when;
 
 import com.petsapp.AbstractIntegrationTest;
 import com.petsapp.auth.AuthService;
-import com.petsapp.auth.ConflictException;
+import com.petsapp.common.ConflictException;
+import com.petsapp.common.UnsupportedFileFormatException;
 import com.petsapp.auth.EmailService;
 import com.petsapp.auth.RefreshTokenRepository;
 import com.petsapp.auth.RegisterRequest;

@@ -1,7 +1,6 @@
 package com.petsapp.common;
 
 import com.petsapp.auth.AuthException;
-import com.petsapp.auth.ConflictException;
 import com.petsapp.auth.RateLimitExceededException;
 import com.petsapp.breed.BreedNotFoundException;
 import com.petsapp.breed.PokedexAccessDeniedException;
@@ -11,7 +10,6 @@ import com.petsapp.catch_.ImageProcessingException;
 import com.petsapp.friend.FriendshipNotFoundException;
 import com.petsapp.user.AvatarProcessingException;
 import com.petsapp.user.PasswordMismatchException;
-import com.petsapp.user.UnsupportedFileFormatException;
 import com.petsapp.user.UserNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
