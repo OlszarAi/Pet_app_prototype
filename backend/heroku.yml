@@ -1,0 +1,18 @@
+# ===========================
+# PetsApp — Heroku Docker deployment
+# ===========================
+# Heroku buduje obraz z Dockerfile w katalogu backend/
+# i uruchamia go z profilem prod.
+#
+# Deploy:
+#   heroku stack:set container -a <nazwa-apki>
+#   git push heroku main
+#
+# Docs: https://devcenter.heroku.com/articles/build-docker-images-heroku-yml
+
+build:
+  docker:
+    web: Dockerfile
+
+run:
+  web: java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod -Dserver.port=$PORT -jar app.jar
