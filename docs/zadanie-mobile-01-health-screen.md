@@ -73,14 +73,11 @@ export async function fetchHealth(): Promise<{ status: string }> {
 <summary>💡 Podpowiedź — URL</summary>
 
 `apiClient` ma `baseURL = http://localhost:8080/api/v1`  
-Endpoint health to `http://localhost:8080/health` — czyli POZA `/api/v1`.
+Endpoint health to `http://localhost:8080/api/v1/health` — czyli normalnie w `baseURL`.
 
-Możesz podać pełny URL bezpośrednio:
+Wystarczy podać:
 ```ts
-apiClient.get('http://localhost:8080/health')
-// albo użyć zmiennej środowiskowej:
-const BASE = process.env.EXPO_PUBLIC_API_URL?.replace('/api/v1', '') ?? '';
-apiClient.get(`${BASE}/health`)
+apiClient.get('/health')
 ```
 
 </details>
