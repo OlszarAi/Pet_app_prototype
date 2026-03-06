@@ -8,5 +8,6 @@ type HealthResponse = {
 };
 
 export async function fetchHealth(): Promise<{status: string}> {
-    const BASE = process.env.EXPO_PUBLIC_API_URL
+    const response = await apiClient.get<HealthResponse>("/health");
+    return response.data.data; 
 }
