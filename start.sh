@@ -79,7 +79,7 @@ done
 # 6. Podsumowanie
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║     PetsApp lokalnie — DZIAŁA ✓           ║${NC}"
+echo -e "${GREEN}║            DZIAŁA ✓                      ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║  Backend API:  http://localhost:8080/api/v1  ║${NC}"
 echo -e "${GREEN}║  Swagger UI:   http://localhost:8080/api/v1/swagger-ui.html  ║${NC}"
